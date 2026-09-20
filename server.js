@@ -79,12 +79,12 @@ No watermark.
 `;
 
     const imageFile = await toFile(
-      req.file.buffer,
-      "uploaded-image.png",
-      {
-        type: "image/png"
-      }
-    );
+  req.file.buffer,
+  req.file.originalname || "uploaded-image",
+  {
+    type: req.file.mimetype
+  }
+);
 
     const result = await client.images.edit({
       model: "gpt-image-2",
