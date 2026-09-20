@@ -39,11 +39,12 @@ PRESERVE THE PRODUCT: keep its shape, proportions, colors, artwork, patterns, te
 
     // Give the OpenAI SDK an explicit filename and MIME type.
     // This prevents the upload from being sent as application/octet-stream.
-    const imageFile=await toFile(
-      req.file.buffer,
-      req.file.originalname||"uploaded-image.jpg",
-      {type:req.file.mimetype}
-    );
+    const imageFile = await toFile(
+  req.file.buffer,
+  req.file.originalname || "uploaded-image.png",
+  { type: "image/png" }
+);
+    
 
     const result=await client.images.edit({
       model:"gpt-image-2",
