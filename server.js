@@ -187,8 +187,10 @@ app.post(
         ساخت فایل برای OpenAI
         با MIME واقعی تشخیص داده شده
       */
-      const imageFile = new File(
-        [req.file.buffer],
+      const { toFile } = require("openai");
+
+      const imageFile = await toFile(
+        req.file.buffer,
         fileName,
         {
           type: detectedMime
