@@ -1,5 +1,6 @@
 const express = require("express");
 const multer = require("multer");
+const sharp = require("sharp");
 const OpenAI = require("openai");
 const path = require("path");
 
@@ -189,11 +190,15 @@ app.post(
       */
       const { toFile } = require("openai");
 
+      const normalizedBuffer = await sharp(req.file.buffer)
+        .png()
+        .toBuffer();
+
       const imageFile = await toFile(
-        req.file.buffer,
-        fileName,
+        normalizedBuffer,
+        "uploaded-image.png",
         {
-          type: detectedMime
+          type: "image/png"
         }
       );
 
