@@ -1,7 +1,6 @@
 const express = require("express");
 const multer = require("multer");
 const OpenAI = require("openai");
-const { toFile } = require("openai");
 const path = require("path");
 
 const app = express();
@@ -188,8 +187,8 @@ app.post(
         ساخت فایل برای OpenAI
         با MIME واقعی تشخیص داده شده
       */
-      const imageFile = await toFile(
-        req.file.buffer,
+      const imageFile = new File(
+        [req.file.buffer],
         fileName,
         {
           type: detectedMime
