@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const OpenAI = require("openai");
 const { toFile } = require("openai");
+const sharp = require("sharp");
 const path = require("path");
 
 const app = express();
@@ -21,7 +22,6 @@ const upload = multer({
     fileSize: 15 * 1024 * 1024
   },
 
-
   fileFilter: (req, file, cb) => {
 
     const allowed = [
@@ -29,7 +29,6 @@ const upload = multer({
       "image/png",
       "image/webp"
     ];
-
 
     if (allowed.includes(file.mimetype)) {
 
@@ -85,77 +84,48 @@ app.post(
 
   async (req, res) => {
 
-
     try {
-
 
       if (!process.env.OPENAI_API_KEY) {
 
         return res.status(500).json({
-
-          error:
-          "کلید OpenAI تنظیم نشده است"
-
+          error: "کلید OpenAI تنظیم نشده است"
         });
 
       }
-
 
 
       if (!req.file) {
 
         return res.status(400).json({
-
-          error:
-          "تصویر دریافت نشد"
-
+          error: "تصویر دریافت نشد"
         });
 
       }
 
 
-
       console.log("UPLOAD:", {
-
-        name:
-        req.file.originalname,
-
-        type:
-        req.file.mimetype,
-
-        size:
-        req.file.size
-
+        name: req.file.originalname,
+        type: req.file.mimetype,
+        size: req.file.size
       });
-
 
 
       const client = new OpenAI({
-
-        apiKey:
-        process.env.OPENAI_API_KEY
-
+        apiKey: process.env.OPENAI_API_KEY
       });
 
 
-
       const productType =
-        req.body.type ||
-        "محصول";
-
+        req.body.type || "محصول";
 
 
       const style =
-        req.body.style ||
-        "Luxury interior";
-
+        req.body.style || "انتخاب هوشمند";
 
 
       const extra =
-        req.body.extra ||
-        "";
-
-
+        req.body.extra || "";
 
 
       const prompt = `
@@ -168,15 +138,15 @@ ${productType}
 Style:
 ${style}
 
-
 IMPORTANT RULES:
 
 - Keep the uploaded product exactly unchanged.
 - Do not redesign the product.
-- Do not change shape.
-- Do not change colors.
-- Do not remove details.
-- Do not add fake elements on the product.
+- Do not change its shape.
+- Do not change its colors.
+- Do not remove important details.
+- Do not add fake details to the product.
+- Preserve the exact identity and appearance of the uploaded product.
 
 Only improve:
 
@@ -186,13 +156,13 @@ Only improve:
 - Environment
 - Professional composition
 
+Place the product naturally inside a beautiful realistic interior suitable for advertising.
 
-Make it look like a high-end commercial photography shot.
+Make it look like a high-end professional commercial photography shot.
 
 No text.
 No logo.
 No watermark.
-
 
 Extra instructions:
 
@@ -201,91 +171,104 @@ ${extra}
 `;
 
 
+      // ==========================================
+      // تبدیل واقعی تصویر به PNG با Sharp
+      // ==========================================
+
+      console.log("Converting image to PNG...");
 
 
-      // تبدیل فایل آپلودی به فایل قابل قبول OpenAI
+      const pngBuffer = await sharp(req.file.buffer)
+        .png()
+        .toBuffer();
 
-      const imageFile = await toFile(
 
-        req.file.buffer,
-
-        req.file.originalname,
-
-        {
-
-          type:
-          req.file.mimetype
-
-        }
-
+      console.log(
+        "PNG conversion successful:",
+        pngBuffer.length,
+        "bytes"
       );
 
 
+      // ==========================================
+      // ساخت فایل PNG استاندارد برای OpenAI
+      // ==========================================
 
+      const imageFile = await toFile(
+        pngBuffer,
+        "uploaded-image.png",
+        {
+          type: "image/png"
+        }
+      );
+
+
+      console.log(
+        "Sending PNG image to OpenAI..."
+      );
+
+
+      // ==========================================
+      // Generate Image
+      // ==========================================
 
       const result =
         await client.images.edit({
 
-          model:
-          "gpt-image-1",
+          model: "gpt-image-1",
 
+          image: imageFile,
 
-          image:
-          imageFile,
+          prompt: prompt,
 
-
-          prompt:
-          prompt,
-
-
-          size:
-          "1024x1024"
+          size: "1024x1024"
 
         });
 
 
-
-
+      // ==========================================
+      // دریافت تصویر خروجی
+      // ==========================================
 
       const output =
         result.data?.[0]?.b64_json;
 
 
-
       if (!output) {
 
         throw new Error(
-          "تصویر خروجی ایجاد نشد"
+          "تصویر خروجی از OpenAI دریافت نشد"
         );
 
       }
 
 
+      console.log(
+        "Image generated successfully."
+      );
 
+
+      // ==========================================
+      // ارسال نتیجه به مرورگر
+      // ==========================================
 
       res.json({
 
-        ok:true,
-
+        ok: true,
 
         image:
-        "data:image/png;base64," +
-        output,
-
+          "data:image/png;base64," +
+          output,
 
         downloadName:
-        "art-designer-result.png"
+          "art-designer-result.png"
 
       });
 
 
-
-
-
     }
 
-    catch(error) {
-
+    catch (error) {
 
       console.error(
         "ERROR:",
@@ -293,24 +276,19 @@ ${extra}
       );
 
 
-
       res.status(400).json({
 
         error:
-        error.message ||
-        "خطا در تولید تصویر"
+          error.message ||
+          "خطا در تولید تصویر"
 
       });
 
-
     }
-
 
   }
 
 );
-
-
 
 
 // ======================
@@ -326,10 +304,10 @@ app.listen(
   () => {
 
     console.log(
-      "Art Designer running on port "
-      + PORT
+      "Art Designer running on port " +
+      PORT
     );
 
   }
 
-);   
+);
