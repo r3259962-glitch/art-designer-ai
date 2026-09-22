@@ -1,67 +1,166 @@
 const express = require("express");
 const multer = require("multer");
 const OpenAI = require("openai");
+const { toFile } = require("openai");
 const path = require("path");
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
+
+// ======================
+// Upload Settings
+// ======================
+
 const upload = multer({
+
   storage: multer.memoryStorage(),
+
   limits: {
     fileSize: 15 * 1024 * 1024
+  },
+
+
+  fileFilter: (req, file, cb) => {
+
+    const allowed = [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+
+    if (allowed.includes(file.mimetype)) {
+
+      cb(null, true);
+
+    } else {
+
+      cb(
+        new Error(
+          "فرمت تصویر باید JPG یا PNG یا WEBP باشد"
+        )
+      );
+
+    }
+
   }
+
 });
 
-app.use(express.static(path.join(__dirname, "public")));
+
+// ======================
+// Static Website
+// ======================
+
+app.use(
+  express.static(
+    path.join(__dirname, "public")
+  )
+);
+
+
+// ======================
+// Health Check
+// ======================
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true });
+
+  res.json({
+    ok: true,
+    message: "Art Designer Server Running"
+  });
+
 });
 
 
-app.post("/api/generate", upload.single("image"), async (req, res) => {
+// ======================
+// Generate Poster
+// ======================
 
-  try {
+app.post(
+  "/api/generate",
+  upload.single("image"),
 
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({
-        error: "کلید OpenAI تنظیم نشده است."
+  async (req, res) => {
+
+
+    try {
+
+
+      if (!process.env.OPENAI_API_KEY) {
+
+        return res.status(500).json({
+
+          error:
+          "کلید OpenAI تنظیم نشده است"
+
+        });
+
+      }
+
+
+
+      if (!req.file) {
+
+        return res.status(400).json({
+
+          error:
+          "تصویر دریافت نشد"
+
+        });
+
+      }
+
+
+
+      console.log("UPLOAD:", {
+
+        name:
+        req.file.originalname,
+
+        type:
+        req.file.mimetype,
+
+        size:
+        req.file.size
+
       });
-    }
 
 
-    if (!req.file) {
-      return res.status(400).json({
-        error: "فایل تصویر دریافت نشد."
+
+      const client = new OpenAI({
+
+        apiKey:
+        process.env.OPENAI_API_KEY
+
       });
-    }
 
 
-    console.log("UPLOAD:", {
-      name: req.file.originalname,
-      type: req.file.mimetype,
-      size: req.file.size
-    });
+
+      const productType =
+        req.body.type ||
+        "محصول";
 
 
-    const client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
+
+      const style =
+        req.body.style ||
+        "Luxury interior";
 
 
-    const productType =
-      req.body.type || "اثر هنری";
 
-    const style =
-      req.body.style || "انتخاب هوشمند";
-
-    const extra =
-      req.body.extra || "";
+      const extra =
+        req.body.extra ||
+        "";
 
 
-    const prompt = `
-Create a premium commercial interior photo.
+
+
+      const prompt = `
+
+Create a premium professional advertising photo.
 
 Product:
 ${productType}
@@ -69,104 +168,168 @@ ${productType}
 Style:
 ${style}
 
-Rules:
-Keep the uploaded product exactly unchanged.
-Do not redesign it.
-Do not change colors.
-Do not change shape.
-Do not remove details.
-Only improve background, lighting, shadows and environment.
 
-Make it look like a professional advertising photograph.
+IMPORTANT RULES:
+
+- Keep the uploaded product exactly unchanged.
+- Do not redesign the product.
+- Do not change shape.
+- Do not change colors.
+- Do not remove details.
+- Do not add fake elements on the product.
+
+Only improve:
+
+- Background
+- Lighting
+- Shadows
+- Environment
+- Professional composition
+
+
+Make it look like a high-end commercial photography shot.
 
 No text.
 No logo.
 No watermark.
 
-Extra:
+
+Extra instructions:
+
 ${extra}
+
 `;
 
 
-    /*
-      تبدیل مستقیم به Data URL
-      تا MIME همیشه مشخص باشد
-    */
-    const base64 =
-      req.file.buffer.toString("base64");
 
 
-    const imageInput =
-      `data:image/png;base64,${base64}`;
+      // تبدیل فایل آپلودی به فایل قابل قبول OpenAI
+
+      const imageFile = await toFile(
+
+        req.file.buffer,
+
+        req.file.originalname,
+
+        {
+
+          type:
+          req.file.mimetype
+
+        }
+
+      );
 
 
-    const result =
-      await client.images.edit({
 
-        model: "gpt-image-1",
 
-        image: imageInput,
+      const result =
+        await client.images.edit({
 
-        prompt: prompt,
+          model:
+          "gpt-image-1",
 
-        size: "1024x1024"
+
+          image:
+          imageFile,
+
+
+          prompt:
+          prompt,
+
+
+          size:
+          "1024x1024"
+
+        });
+
+
+
+
+
+      const output =
+        result.data?.[0]?.b64_json;
+
+
+
+      if (!output) {
+
+        throw new Error(
+          "تصویر خروجی ایجاد نشد"
+        );
+
+      }
+
+
+
+
+      res.json({
+
+        ok:true,
+
+
+        image:
+        "data:image/png;base64," +
+        output,
+
+
+        downloadName:
+        "art-designer-result.png"
 
       });
 
 
-    const output =
-      result.data?.[0]?.b64_json;
 
 
-    if (!output) {
-      throw new Error(
-        "تصویر خروجی دریافت نشد."
+
+    }
+
+    catch(error) {
+
+
+      console.error(
+        "ERROR:",
+        error
       );
+
+
+
+      res.status(400).json({
+
+        error:
+        error.message ||
+        "خطا در تولید تصویر"
+
+      });
+
+
     }
 
 
-    res.json({
-
-      ok: true,
-
-      image:
-        `data:image/png;base64,${output}`,
-
-      downloadName:
-        "art-designer-result.png"
-
-    });
-
-
-  } catch (error) {
-
-    console.error(
-      "ERROR:",
-      error
-    );
-
-
-    res.status(400).json({
-
-      error:
-        error.message ||
-        "خطای تولید تصویر"
-
-    });
-
   }
 
-});
+);
 
+
+
+
+// ======================
+// Start Server
+// ======================
 
 app.listen(
+
   PORT,
+
   "0.0.0.0",
+
   () => {
 
     console.log(
-      "Art Designer running on " + PORT
+      "Art Designer running on port "
+      + PORT
     );
 
   }
-);
+
+);   
