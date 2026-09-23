@@ -9,12 +9,18 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
+
+// Upload
 const upload = multer({
+
   storage: multer.memoryStorage(),
+
   limits: {
     fileSize: 15 * 1024 * 1024
   },
+
   fileFilter: (req, file, cb) => {
+
     const allowed = [
       "image/jpeg",
       "image/png",
@@ -24,162 +30,288 @@ const upload = multer({
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("فرمت تصویر باید JPG یا PNG یا WEBP باشد"));
+      cb(
+        new Error(
+          "فرمت تصویر باید JPG یا PNG یا WEBP باشد"
+        )
+      );
     }
+
   }
+
 });
 
-app.use(express.static(path.join(__dirname, "public")));
 
+// Website
+app.use(
+  express.static(
+    path.join(__dirname, "public")
+  )
+);
+
+
+// Health
 app.get("/health", (req, res) => {
+
   res.json({
     ok: true,
     message: "Art Designer Server Running"
   });
+
 });
 
+
+// Generate Image
 app.post(
   "/api/generate",
   upload.single("image"),
+
   async (req, res) => {
+
     try {
+
+
       if (!process.env.OPENAI_API_KEY) {
+
         return res.status(500).json({
           error: "کلید OpenAI تنظیم نشده است"
         });
+
       }
 
+
       if (!req.file) {
+
         return res.status(400).json({
           error: "تصویر دریافت نشد"
         });
+
       }
 
-      console.log("UPLOAD:", {
+
+      console.log("ORIGINAL FILE:", {
         name: req.file.originalname,
         type: req.file.mimetype,
         size: req.file.size
       });
 
-      // تبدیل تصویر ورودی به PNG واقعی
-      const pngBuffer = await sharp(req.file.buffer)
-        .png()
-        .toBuffer();
 
-      console.log("PNG created:", pngBuffer.length, "bytes");
+
+      // تبدیل اجباری تصویر به PNG واقعی
+
+      const pngBuffer =
+        await sharp(req.file.buffer)
+          .png()
+          .toBuffer();
+
+
+      console.log(
+        "PNG READY:",
+        pngBuffer.length
+      );
+
+
 
       const client = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY
+
+        apiKey:
+          process.env.OPENAI_API_KEY
+
       });
 
+
+
       const productType =
-        req.body.type || "محصول هنری";
+        req.body.type ||
+        "اثر هنری";
+
 
       const style =
         req.body.style ||
-        "انتخاب هوشمند توسط نرم‌افزار";
+        "انتخاب هوشمند";
+
+
 
       const extra =
-        req.body.extra || "";
+        req.body.extra ||
+        "";
+
+
 
       const prompt = `
-Create a professional advertising photograph using
-the uploaded product.
 
-PRODUCT TYPE:
+Create a premium professional advertising photograph.
+
+Product:
 ${productType}
 
-DESIGN STYLE:
+Style:
 ${style}
 
-The uploaded product must remain exactly the same.
 
-Do NOT change:
+IMPORTANT:
+
+Keep the uploaded product exactly unchanged.
+
+Do not change:
 - shape
-- proportions
 - colors
+- size
 - texture
 - pattern
 - materials
 - details
 
-Do NOT redesign the product.
-Do NOT replace it with another object.
-Do NOT add decorations to the product.
-Do NOT remove any part of the product.
 
-Only create a beautiful realistic environment around
-the product.
+Do not redesign the product.
 
-You may improve:
-- interior/background
+Only improve:
+
+- background
 - lighting
-- natural shadows
-- reflections
-- furniture
-- decoration
-- camera composition
+- shadows
+- interior environment
+- composition
 
-Make the result look like a professional commercial
-interior-design photograph.
 
-The product must remain the main subject.
+Make it look like a high-end commercial photo.
 
-Do not add text.
-Do not add logos.
-Do not add watermarks.
+No text.
+No logo.
+No watermark.
 
-EXTRA USER INSTRUCTIONS:
+
+Extra instructions:
+
 ${extra}
+
 `;
 
-      // ساخت یک فایل واقعی با MIME صریح image/png
-      // به جای Data URL یا Buffer خام
-      const imageFile = await toFile(
-        pngBuffer,
-        "uploaded.png",
-        { type: "image/png" }
-      );
+
+
+      // ساخت فایل PNG با MIME مشخص
+
+      const imageFile =
+        await toFile(
+
+          pngBuffer,
+
+          "uploaded.png",
+
+          {
+            type: "image/png"
+          }
+
+        );
+
+
 
       console.log("OPENAI FILE:", {
+
         name: imageFile.name,
         type: imageFile.type,
         size: imageFile.size
+
       });
 
-      const result = await client.images.edit({
-        model: "gpt-image-1",
-        image: imageFile,
-        prompt: prompt,
-        size: "1024x1024"
-      });
 
-      const output = result.data?.[0]?.b64_json;
+
+      const result =
+        await client.images.edit({
+
+          model: "gpt-image-1",
+
+          image: imageFile,
+
+          prompt: prompt,
+
+          size: "1024x1024"
+
+        });
+
+
+
+      const output =
+        result.data?.[0]?.b64_json;
+
+
 
       if (!output) {
-        throw new Error("تصویر خروجی ایجاد نشد");
+
+        throw new Error(
+          "تصویر خروجی ایجاد نشد"
+        );
+
       }
 
-      console.log("Image generated successfully.");
+
+
+      console.log(
+        "IMAGE CREATED SUCCESSFULLY"
+      );
+
+
 
       res.json({
+
         ok: true,
-        image: "data:image/png;base64," + output,
-        downloadName: "art-designer-result.png"
+
+        image:
+          "data:image/png;base64," +
+          output,
+
+
+        downloadName:
+          "art-designer-result.png"
+
       });
 
-    } catch (error) {
-      console.error("GENERATION ERROR:", error);
+
+
+    }
+
+    catch(error) {
+
+
+      console.error(
+        "ERROR:",
+        error
+      );
+
 
       res.status(400).json({
+
         error:
-          error?.message ||
+          error.message ||
           "خطا در تولید تصویر"
+
       });
+
+
     }
+
+
   }
+
 );
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Art Designer listening on " + PORT);
-});
+
+
+// Start
+
+app.listen(
+
+  PORT,
+
+  "0.0.0.0",
+
+  () => {
+
+    console.log(
+      "Art Designer running on port " +
+      PORT
+    );
+
+  }
+
+);
