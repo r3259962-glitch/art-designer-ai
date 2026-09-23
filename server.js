@@ -1,7 +1,7 @@
-```javascript
 const express = require("express");
 const multer = require("multer");
 const OpenAI = require("openai");
+const { toFile } = require("openai");
 const sharp = require("sharp");
 const path = require("path");
 
@@ -61,16 +61,12 @@ app.post(
         size: req.file.size
       });
 
-      // تبدیل هر تصویر ورودی به PNG واقعی
+      // تبدیل تصویر ورودی به PNG واقعی
       const pngBuffer = await sharp(req.file.buffer)
         .png()
         .toBuffer();
 
-      console.log(
-        "PNG created:",
-        pngBuffer.length,
-        "bytes"
-      );
+      console.log("PNG created:", pngBuffer.length, "bytes");
 
       const client = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
@@ -137,56 +133,43 @@ EXTRA USER INSTRUCTIONS:
 ${extra}
 `;
 
-      /*
-       * مهم:
-       * فایل PNG را به صورت Data URL می‌سازیم.
-       * این کار MIME را به صورت صریح image/png مشخص می‌کند.
-       */
-
-      const imageDataUrl =
-        "data:image/png;base64," +
-        pngBuffer.toString("base64");
-
-      console.log(
-        "Sending image as PNG Data URL..."
+      // ساخت یک فایل واقعی با MIME صریح image/png
+      // به جای Data URL یا Buffer خام
+      const imageFile = await toFile(
+        pngBuffer,
+        "uploaded.png",
+        { type: "image/png" }
       );
 
-      const result =
-        await client.images.edit({
-          model: "gpt-image-1",
-          image: imageDataUrl,
-          prompt: prompt,
-          size: "1024x1024"
-        });
+      console.log("OPENAI FILE:", {
+        name: imageFile.name,
+        type: imageFile.type,
+        size: imageFile.size
+      });
 
-      const output =
-        result.data?.[0]?.b64_json;
+      const result = await client.images.edit({
+        model: "gpt-image-1",
+        image: imageFile,
+        prompt: prompt,
+        size: "1024x1024"
+      });
+
+      const output = result.data?.[0]?.b64_json;
 
       if (!output) {
-        throw new Error(
-          "تصویر خروجی ایجاد نشد"
-        );
+        throw new Error("تصویر خروجی ایجاد نشد");
       }
 
-      console.log(
-        "Image generated successfully."
-      );
+      console.log("Image generated successfully.");
 
       res.json({
         ok: true,
-        image:
-          "data:image/png;base64," +
-          output,
-        downloadName:
-          "art-designer-result.png"
+        image: "data:image/png;base64," + output,
+        downloadName: "art-designer-result.png"
       });
 
     } catch (error) {
-
-      console.error(
-        "GENERATION ERROR:",
-        error
-      );
+      console.error("GENERATION ERROR:", error);
 
       res.status(400).json({
         error:
@@ -197,14 +180,6 @@ ${extra}
   }
 );
 
-app.listen(
-  PORT,
-  "0.0.0.0",
-  () => {
-    console.log(
-      "Art Designer listening on " +
-      PORT
-    );
-  }
-);
-```
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Art Designer listening on " + PORT);
+});
