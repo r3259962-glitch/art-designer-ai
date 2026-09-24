@@ -318,37 +318,42 @@ try{
 
 const buffer = await f.arrayBuffer();
 
-let mime = f.type;
+function detectImageMime(bytes, filename, browserType) {
+  if (bytes.length >= 3 &&
+      bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return "image/jpeg";
+  if (bytes.length >= 8 &&
+      bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E &&
+      bytes[3] === 0x47 && bytes[4] === 0x0D && bytes[5] === 0x0A &&
+      bytes[6] === 0x1A && bytes[7] === 0x0A) return "image/png";
+  if (bytes.length >= 12 &&
+      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 &&
+      bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 &&
+      bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
 
-if (!mime || !mime.startsWith("image/")) {
-  const ext = f.name.split(".").pop().toLowerCase();
-
-  if (ext === "png") {
-    mime = "image/png";
-  } else if (ext === "webp") {
-    mime = "image/webp";
-  } else {
-    mime = "image/jpeg";
+  if (browserType === "image/jpeg" || browserType === "image/png" || browserType === "image/webp") {
+    return browserType;
   }
+
+  const ext = filename.split(".").pop().toLowerCase();
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+
+  return "";
 }
 
-const fixedFile = new File(
-  [buffer],
-  f.name,
-  { type: mime }
-);
+const bytes = new Uint8Array(buffer);
+const mime = detectImageMime(bytes, f.name, f.type);
 
+if (!mime) {
+  throw new Error("فرمت این تصویر پشتیبانی نمی‌شود. لطفاً عکس JPG، PNG یا WEBP انتخاب کنید.");
+}
 
+const fixedFile = new File([buffer], f.name, { type: mime });
 
 const fd = new FormData();
 
-
-
-fd.append(
-"image",
-fixedFile,
-f.name
-);
+fd.append("image", fixedFile, f.name);
 
 
 
