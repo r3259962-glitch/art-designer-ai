@@ -1,0 +1,8 @@
+{
+  "name": "safar-doost",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Safar Doost - friendship and home-hosting travel community",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=20" }
+}
