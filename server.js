@@ -10,16 +10,7 @@ console.log("ART DESIGNER DIRECT API VERSION LOADED");
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ["image/jpeg", "image/png", "image/webp"];
-
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("فرمت تصویر باید JPG یا PNG یا WEBP باشد"));
-    }
-  }
+  limits: { fileSize: 15 * 1024 * 1024 }
 });
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -50,6 +41,22 @@ app.post("/api/generate", upload.single("image"), async (req, res) => {
       type: req.file.mimetype,
       size: req.file.size
     });
+
+    // Never trust the multipart MIME type from a browser.
+    // Validate the actual image bytes and normalize them to a real PNG.
+    const metadata = await sharp(req.file.buffer).metadata();
+
+    console.log("DETECTED IMAGE:", {
+      format: metadata.format,
+      width: metadata.width,
+      height: metadata.height
+    });
+
+    if (!["jpeg", "png", "webp"].includes(metadata.format)) {
+      return res.status(400).json({
+        error: "فرمت تصویر باید JPG یا PNG یا WEBP باشد"
+      });
+    }
 
     const pngBuffer = await sharp(req.file.buffer)
       .png()
