@@ -6,6 +6,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@huggingface/inference": "^4.13.4",
     "express": "^5.1.0",
     "multer": "^2.0.2",
     "openai": "^5.12.2",
