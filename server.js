@@ -3,17 +3,34 @@ const multer = require("multer");
 const sharp = require("sharp");
 const path = require("path");
 
+const OpenAI = require("openai");
+const { toFile } = require("openai");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-console.log("ART DESIGNER DIRECT API VERSION LOADED");
+console.log("ART DESIGNER OPENAI SDK VERSION LOADED");
+
+// --------------------------------------------------
+// Upload configuration
+// --------------------------------------------------
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 }
+  limits: {
+    fileSize: 15 * 1024 * 1024
+  }
 });
 
+// --------------------------------------------------
+// Static frontend
+// --------------------------------------------------
+
 app.use(express.static(path.join(__dirname, "public")));
+
+// --------------------------------------------------
+// Health check
+// --------------------------------------------------
 
 app.get("/health", (req, res) => {
   res.json({
@@ -22,53 +39,103 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.post("/api/generate", upload.single("image"), async (req, res) => {
-  try {
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({
-        error: "کلید OpenAI تنظیم نشده است"
+// --------------------------------------------------
+// Image generation
+// --------------------------------------------------
+
+app.post(
+  "/api/generate",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+
+      // ----------------------------------------------
+      // Check API key
+      // ----------------------------------------------
+
+      if (!process.env.OPENAI_API_KEY) {
+        console.error("OPENAI_API_KEY IS MISSING");
+
+        return res.status(500).json({
+          error: "کلید OpenAI تنظیم نشده است"
+        });
+      }
+
+      // ----------------------------------------------
+      // Check uploaded image
+      // ----------------------------------------------
+
+      if (!req.file) {
+        console.error("NO IMAGE RECEIVED");
+
+        return res.status(400).json({
+          error: "تصویر دریافت نشد"
+        });
+      }
+
+      console.log("ORIGINAL FILE:", {
+        name: req.file.originalname,
+        type: req.file.mimetype,
+        size: req.file.size
       });
-    }
 
-    if (!req.file) {
-      return res.status(400).json({
-        error: "تصویر دریافت نشد"
+      // ----------------------------------------------
+      // Validate actual image bytes
+      // Do NOT trust browser MIME type.
+      // ----------------------------------------------
+
+      const metadata = await sharp(req.file.buffer).metadata();
+
+      console.log("DETECTED IMAGE:", {
+        format: metadata.format,
+        width: metadata.width,
+        height: metadata.height
       });
-    }
 
-    console.log("ORIGINAL FILE:", {
-      name: req.file.originalname,
-      type: req.file.mimetype,
-      size: req.file.size
-    });
+      if (
+        !["jpeg", "png", "webp"].includes(
+          metadata.format
+        )
+      ) {
+        return res.status(400).json({
+          error:
+            "فرمت تصویر باید JPG یا PNG یا WEBP باشد"
+        });
+      }
 
-    // Never trust the multipart MIME type from a browser.
-    // Validate the actual image bytes and normalize them to a real PNG.
-    const metadata = await sharp(req.file.buffer).metadata();
+      // ----------------------------------------------
+      // Normalize everything to PNG
+      // ----------------------------------------------
 
-    console.log("DETECTED IMAGE:", {
-      format: metadata.format,
-      width: metadata.width,
-      height: metadata.height
-    });
+      const pngBuffer = await sharp(req.file.buffer)
+        .png()
+        .toBuffer();
 
-    if (!["jpeg", "png", "webp"].includes(metadata.format)) {
-      return res.status(400).json({
-        error: "فرمت تصویر باید JPG یا PNG یا WEBP باشد"
-      });
-    }
+      console.log(
+        "PNG READY:",
+        pngBuffer.length,
+        "bytes"
+      );
 
-    const pngBuffer = await sharp(req.file.buffer)
-      .png()
-      .toBuffer();
+      // ----------------------------------------------
+      // User options
+      // ----------------------------------------------
 
-    console.log("PNG READY:", pngBuffer.length, "bytes");
+      const productType =
+        req.body.type || "اثر هنری";
 
-    const productType = req.body.type || "اثر هنری";
-    const style = req.body.style || "انتخاب هوشمند توسط نرم افزار";
-    const extra = req.body.extra || "";
+      const style =
+        req.body.style ||
+        "انتخاب هوشمند توسط نرم افزار";
 
-    const prompt = `
+      const extra =
+        req.body.extra || "";
+
+      // ----------------------------------------------
+      // Prompt
+      // ----------------------------------------------
+
+      const prompt = `
 Create a professional advertising photograph using the uploaded product.
 
 Product type:
@@ -116,76 +183,150 @@ EXTRA USER INSTRUCTIONS:
 ${extra}
 `;
 
-    const form = new FormData();
+      // ----------------------------------------------
+      // OpenAI client
+      // ----------------------------------------------
 
-    form.append("model", "gpt-image-1");
-    form.append("prompt", prompt);
-    form.append("size", "1024x1024");
+      const client = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+      });
 
-    const imageBlob = new Blob(
-      [pngBuffer],
-      { type: "image/png" }
-    );
+      console.log("CREATING OPENAI FILE...");
 
-    form.append(
-      "image",
-      imageBlob,
-      "uploaded.png"
-    );
+      // ----------------------------------------------
+      // IMPORTANT:
+      // Explicitly create a File with:
+      // filename = uploaded.png
+      // MIME = image/png
+      //
+      // This prevents application/octet-stream.
+      // ----------------------------------------------
 
-    console.log("DIRECT OPENAI REQUEST:", {
-      mime: imageBlob.type,
-      size: pngBuffer.length
-    });
+      const imageFile = await toFile(
+        pngBuffer,
+        "uploaded.png",
+        {
+          type: "image/png"
+        }
+      );
 
-    const response = await fetch(
-      "https://api.openai.com/v1/images/edits",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: form
+      console.log("OPENAI FILE READY:", {
+        name: imageFile.name,
+        type: imageFile.type,
+        size: imageFile.size
+      });
+
+      // ----------------------------------------------
+      // Send image edit request
+      // ----------------------------------------------
+
+      console.log("OPENAI IMAGE EDIT REQUEST");
+
+      const result = await client.images.edit({
+        model: "gpt-image-1",
+
+        image: imageFile,
+
+        prompt: prompt,
+
+        size: "1024x1024"
+      });
+
+      console.log(
+        "OPENAI RESPONSE RECEIVED"
+      );
+
+      // ----------------------------------------------
+      // Extract generated image
+      // ----------------------------------------------
+
+      const output =
+        result?.data?.[0]?.b64_json;
+
+      if (!output) {
+
+        console.error(
+          "OPENAI RESPONSE WITHOUT IMAGE:",
+          result
+        );
+
+        throw new Error(
+          "تصویر خروجی ایجاد نشد"
+        );
       }
-    );
 
-    const data = await response.json();
+      console.log(
+        "IMAGE CREATED SUCCESSFULLY"
+      );
 
-    if (!response.ok) {
-      console.error("OPENAI ERROR:", data);
+      // ----------------------------------------------
+      // Return image to frontend
+      // ----------------------------------------------
 
-      return res.status(response.status).json({
+      return res.json({
+        ok: true,
+
+        image:
+          "data:image/png;base64," +
+          output,
+
+        downloadName:
+          "art-designer-result.png"
+      });
+
+    } catch (error) {
+
+      // ----------------------------------------------
+      // Detailed error logging
+      // ----------------------------------------------
+
+      console.error(
+        "GENERATION ERROR:"
+      );
+
+      console.error(error);
+
+      if (error?.response) {
+        console.error(
+          "OPENAI RESPONSE:",
+          error.response
+        );
+      }
+
+      if (error?.error) {
+        console.error(
+          "OPENAI ERROR OBJECT:",
+          error.error
+        );
+      }
+
+      // ----------------------------------------------
+      // Send readable error to frontend
+      // ----------------------------------------------
+
+      return res.status(
+        error?.status || 500
+      ).json({
         error:
-          data?.error?.message ||
-          "خطا از طرف OpenAI"
+          error?.error?.message ||
+          error?.message ||
+          "خطا در تولید تصویر"
       });
     }
-
-    const output = data?.data?.[0]?.b64_json;
-
-    if (!output) {
-      console.error("OPENAI RESPONSE WITHOUT IMAGE:", data);
-
-      throw new Error("تصویر خروجی ایجاد نشد");
-    }
-
-    console.log("IMAGE CREATED SUCCESSFULLY");
-
-    res.json({
-      ok: true,
-      image: "data:image/png;base64," + output,
-      downloadName: "art-designer-result.png"
-    });
-
-  } catch (error) {
-    console.error("GENERATION ERROR:", error);
-
-    res.status(500).json({
-      error: error?.message || "خطا در تولید تصویر"
-    });
   }
-});
+);
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Art Designer listening on " + PORT);
-});
+// --------------------------------------------------
+// Start server
+// --------------------------------------------------
+
+app.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
+    console.log(
+      "Art Designer listening on " +
+      PORT
+    );
+  }
+);
