@@ -1,0 +1,20 @@
+{
+  "name": "دیزاینر هنری هوشمند",
+  "short_name": "دیزاینر هنری",
+  "description": "ساخت تصاویر تبلیغاتی حرفه‌ای از آثار هنری",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5edef",
+  "theme_color": "#584449",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
