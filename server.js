@@ -111,9 +111,9 @@ ${extra}
 
     console.log("HF IMAGE EDIT REQUEST");
 
-    const client = new InferenceClient({
-      apiKey: process.env.HF_TOKEN
-    });
+    const client = new InferenceClient(
+      process.env.HF_TOKEN
+    );
 
     // Qwen Image Edit is designed specifically for instruction-based image editing.
     // Hugging Face currently documents it with the fal-ai inference provider.
