@@ -159,17 +159,31 @@ async function chat(){
 $("send").onclick=chat;$("msg").addEventListener("keydown",e=>{if(e.key==="Enter")chat()});
 
 function autonomous(){
- const r=Math.random();
- if(s.hunger<25&&r<.7){say("میو... گرسنه‌ام 😿");moveTo("bowl",42,76,"walk");return}
- if(s.energy<24&&r<.8){say("یه جای نرم می‌خوام... 😴");moveTo("bed",20,69,"walk");setTimeout(()=>setMode("sleep"),1200);return}
- if(r<.16){moveTo("window",20,38,"walk");say("*به بیرون خیره می‌شود* 🐱");return}
- if(r<.30){moveTo("box",72,64,"walk");say("*می‌رود داخل جعبه* 📦");setTimeout(()=>setMode("sleep"),1200);return}
- if(r<.43){moveTo("scratch",42,58,"walk");say("*پنجه‌ها را روی اسکرچر می‌کشد*");return}
- if(r<.58){moveTo("toy",58,70,"walk");say("*اسباب‌بازی را دنبال می‌کند* 🐾");s.energy=clamp(s.energy-2);s.happy=clamp(s.happy+2);return}
- if(r<.72){moveTo("center",50+Math.random()*12-6,52+Math.random()*10-5,"walk");return}
- if(r<.84){setMode("alert");say("*یک صدا شنید...* 👂");setTimeout(mood,1800);return}
- if(r<.92){setMode("purr");say("*خودش را تمیز می‌کند*");setTimeout(mood,2200);return}
- say("*بی‌دلیل می‌رود یک جای دیگر* 😼");moveTo("random",35+Math.random()*35,48+Math.random()*25,"walk");
+ // انتخاب رفتار بر اساس نیازهای فعلی، نه قرعه‌کشی کاملاً تصادفی
+ const energy=s.energy, hunger=s.hunger, happy=s.happy, trust=s.trust;
+ const choices=[
+  {id:"food",w:Math.max(0,58-hunger)*0.95},
+  {id:"rest",w:Math.max(0,62-energy)*1.05},
+  {id:"window",w:13+(100-trust)*.08},
+  {id:"box",w:12+(100-trust)*.12+(energy<55?5:0)},
+  {id:"scratch",w:10+(happy<45?7:0)},
+  {id:"play",w:Math.max(0,energy-25)*.35+Math.max(0,65-happy)*.22+trust*.08},
+  {id:"social",w:trust*.18+(happy<55?8:0)},
+  {id:"groom",w:12+(energy>65?5:0)},
+  {id:"wander",w:9+(100-trust)*.05}
+ ];
+ const total=choices.reduce((a,b)=>a+b.w,0);
+ let pick=Math.random()*total, action=choices[choices.length-1].id;
+ for(const item of choices){pick-=item.w;if(pick<=0){action=item.id;break}}
+ if(action==="food"){say("میو... فکر کنم وقت غذاست 😿");moveTo("bowl",42,76,"walk");return}
+ if(action==="rest"){say("یه جای نرم پیدا کنم... 😴");moveTo("bed",20,69,"walk");setTimeout(()=>setMode("sleep"),1200);return}
+ if(action==="window"){moveTo("window",20,38,"walk");say("*کنار پنجره می‌نشیند و بیرون را تماشا می‌کند* 🐱");return}
+ if(action==="box"){moveTo("box",72,64,"walk");say("*داخل جعبه می‌خزد و خودش را جمع می‌کند* 📦");if(energy<48)setTimeout(()=>setMode("sleep"),1200);return}
+ if(action==="scratch"){moveTo("scratch",42,58,"walk");say("*با پنجه‌هایش اسکرچر را می‌خراشد*");s.happy=clamp(s.happy+1);return}
+ if(action==="play"){moveTo("toy",58,70,"walk");say("*با کنجکاوی اسباب‌بازی را تعقیب می‌کند* 🐾");s.energy=clamp(s.energy-3);s.happy=clamp(s.happy+3);return}
+ if(action==="social"){if(Math.random()<Math.min(.8,trust/125)){moveTo("center",49,58,"walk");say("*نزدیکت می‌آید و با سرش اطراف دستت را بو می‌کند* 🥹")}else{setMode("alert");say("*نگاهی به تو می‌اندازد، اما فعلاً ترجیح می‌دهد فاصله‌اش را حفظ کند* 😼")}return}
+ if(action==="groom"){setMode("purr");say("*با حوصله خودش را تمیز می‌کند*");setTimeout(mood,2200);return}
+ moveTo("random",35+Math.random()*35,48+Math.random()*25,"walk");say("*برای کشف گوشه‌ای دیگر راه می‌افتد* 🐈");
 }
 setInterval(()=>{
  s.hunger=clamp(s.hunger-.035);s.energy=clamp(s.energy-(s.energy<30?-.02:.012));s.happy=clamp(s.happy-(s.hunger<25?.018:.006));
