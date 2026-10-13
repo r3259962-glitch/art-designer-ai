@@ -1,12 +1,6 @@
-// سفر‌دوست — Supabase browser client bootstrap
-// 1) Create a free Supabase project.
-// 2) Replace the two placeholders below with Project URL + anon/publishable key.
-// 3) Never put the service_role/secret key in this file.
-
-window.SAFARDOUST_SUPABASE_URL = 'YOUR_SUPABASE_URL';
-window.SAFARDOUST_SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-
-window.safardoustConfig = {
-  url: window.SAFARDOUST_SUPABASE_URL,
-  anonKey: window.SAFARDOUST_SUPABASE_ANON_KEY
-};
+// سفر‌دوست — تنظیمات عمومی کلاینت Supabase
+// کلید publishable برای استفاده در مرورگر طراحی شده است.
+// هرگز service_role یا کلید secret را در این فایل قرار ندهید.
+window.SAFARDOUST_SUPABASE_URL = 'https://krjnwyfasddugyzhyrzi.supabase.co';
+window.SAFARDOUST_SUPABASE_ANON_KEY = 'sb_publishable_QwI6c4-rNv53quROhXjFww_Qivh8K41';
+window.safardoustConfig = { url: window.SAFARDOUST_SUPABASE_URL, anonKey: window.SAFARDOUST_SUPABASE_ANON_KEY };
