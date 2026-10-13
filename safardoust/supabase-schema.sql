@@ -9,7 +9,11 @@ create table if not exists public.profiles (
  home text,
  avatar_url text,
  role text default 'both' check (role in ('host','traveler','both')),
- created_at timestamptz default now()
+ created_at timestamptz default now(),
+ home_photos text[] default '{}',
+ city_photos text[] default '{}',
+ attractions text,
+ availability text
 );
 
 -- اطلاعات تماس خصوصی است و نباید در پروفایل عمومی نگهداری شود.
@@ -31,6 +35,7 @@ create table if not exists public.friend_requests (
  receiver uuid references public.profiles(id) on delete cascade,
  status text default 'pending' check(status in ('pending','accepted','declined','blocked')),
  created_at timestamptz default now(),
+ message text,
  unique(sender,receiver)
 );
 
