@@ -4,19 +4,100 @@
 <header><div class="wrap nav"><a class="brand" href="#">✈ سفر‌دوست</a><nav class="links"><a href="#people">افراد</a><a href="#how">راهنما</a><a href="#safety">امنیت</a></nav><div class="actions"><button class="btn ghost" onclick="auth()">ورود</button><button class="btn orange" onclick="auth()">ثبت‌نام رایگان</button></div></div></header>
 <section class="hero"><div class="wrap"><span>🌍 جامعه‌ای برای دوستی و سفر</span><h1>در هر شهر،<br>یک دوست پیدا کن.</h1><p>آدم‌های شهر مقصدت را پیدا کن، با آن‌ها آشنا شو و اگر هر دو طرف راحت بودید، تجربه سفر و میزبانی را به اشتراک بگذارید.</p><div class="search"><input id="q" placeholder="مثلاً Berlin یا New York"><select id="kind"><option value="">همه</option><option value="میزبان">میزبان</option><option value="مسافر">مسافر</option></select><button onclick="searchPeople()">جستجو 🔎</button></div></div></section>
 <main><section class="features"><div class="wrap grid4"><div class="feature"><b>🤝</b><h3>دوستی قبل از سفر</h3><p>قبل از برنامه‌ریزی با افراد آشنا شوید.</p></div><div class="feature"><b>🏠</b><h3>میزبانی داوطلبانه</h3><p>فقط با رضایت و اعتماد دوطرفه.</p></div><div class="feature"><b>🌍</b><h3>تجربه محلی</h3><p>شهر را از نگاه یک ساکن ببین.</p></div><div class="feature"><b>🛡️</b><h3>امنیت</h3><p>اطلاعات حساس را خودت کنترل کن.</p></div></div></section>
-<section class="section" id="people"><div class="wrap"><div class="head"><div><h2>دوستان شهرهای مختلف</h2><p>پروفایل‌های نمونه برای نمایش طراحی سایت.</p></div><button class="btn ghost" onclick="showDash()">پروفایل من</button></div><div class="cards" id="cards"></div></div></section>
+<section class="section" id="people"><div class="wrap"><div class="head"><div><h2>دوستان شهرهای مختلف</h2><p>پروفایل‌های واقعی اعضای سفر‌دوست.</p></div><button class="btn ghost" onclick="showDash()">پروفایل من</button></div><div class="cards" id="cards"></div></div></section>
 <section class="section dash" id="dash"><div class="wrap"><div class="head"><h2>پروفایل من</h2><button class="btn ghost" onclick="hideDash()">بستن</button></div><div class="panel" style="padding:22px"><p id="my">هنوز پروفایلی ساخته نشده است.</p><button class="btn primary" onclick="auth()">ساخت/ویرایش پروفایل</button></div></div></section>
 <section class="section" id="how" style="background:#eaf4f1"><div class="wrap"><div class="head"><div><h2>چطور کار می‌کند؟</h2><p>انتخاب و اعتماد همیشه دست خود کاربران است.</p></div></div><div class="steps"><div class="step"><div class="num">۱</div><h3>ثبت‌نام</h3><p>حساب و پروفایل بساز.</p></div><div class="step"><div class="num">۲</div><h3>جستجو</h3><p>شهر مقصدت را پیدا کن.</p></div><div class="step"><div class="num">۳</div><h3>آشنایی</h3><p>گفت‌وگو و شناخت قبل از سفر.</p></div><div class="step"><div class="num">۴</div><h3>سفر</h3><p>در صورت توافق، برنامه‌ریزی کنید.</p></div></div></div></section>
 <section class="wrap section" id="safety"><div class="safety"><b>🛡️ نکات مهم امنیتی</b><p>رمز عبور، پول و اطلاعات حساس را به دیگران ندهید. اولین ملاقات را در مکان عمومی انجام دهید و برنامه سفرتان را با فرد مورد اعتماد در میان بگذارید. سفر‌دوست بستر آشنایی است و مسئولیت تصمیم‌ها و رفتار کاربران بر عهده خود آنهاست.</p></div></section>
 <section class="wrap join"><div><h2>سفر، با یک دوست محلی متفاوت است.</h2><p>شهر خودت را معرفی کن و دوستان تازه پیدا کن.</p></div><button class="btn orange" onclick="auth()">عضویت رایگان</button></section></main>
 <footer><div class="wrap"><h3>سفر‌دوست</h3><p>دوستی در مسیر سفر.</p><a href="#safety">امنیت</a><a href="#">حریم خصوصی</a><a href="#">شرایط استفاده</a><p>© ۲۰۲۶ سفر‌دوست</p></div></footer>
-<div class="modal" id="modal"><div class="box"><button class="close" onclick="closeAuth()">×</button><h2>ساخت پروفایل رایگان</h2><p class="contact-note">برای امنیت و امکان ارتباط، حداقل یک راه ارتباطی لازم است. شماره تلفن اختیاری است و اطلاعات تماس در نسخه واقعی نباید عمومی نمایش داده شود.</p><form class="form" onsubmit="save(event)"><div class="field"><label>نام</label><input name="name" required></div><div class="field"><label>شهر</label><input name="city" required></div><div class="field"><label>کشور</label><input name="country" required></div><div class="field"><label>زبان‌ها</label><input name="languages"></div><div class="field full"><label>معرفی</label><textarea name="bio"></textarea></div><div class="field full"><label>میزبانی</label><textarea name="home"></textarea></div><div class="field"><label>📞 شماره تلفن (اختیاری)</label><input name="phone" type="tel" inputmode="tel" placeholder="+98 912 123 4567"></div><div class="field"><label>📧 راه ارتباطی دیگر (اختیاری)</label><input name="contact_info" placeholder="ایمیل، تلگرام، واتساپ و..."></div><div class="full required-contact">حداقل یکی از «شماره تلفن» یا «راه ارتباطی دیگر» باید وارد شود.</div><label class="full"><input type="checkbox" required> قوانین امنیتی را خواندم.</label><button class="btn primary full">ذخیره</button></form></div></div>
+<div class="modal" id="modal"><div class="box"><button class="close" onclick="closeAuth()">×</button><h2>ورود و عضویت در سفر‌دوست</h2>
+<div id="authArea"><p class="contact-note">برای ساخت پروفایل عمومی، ابتدا با ایمیل و رمز عبور حساب بسازید یا وارد شوید. ممکن است برای تأیید ایمیل، پیام تأیید دریافت کنید.</p>
+<form id="authForm" class="form"><div class="field full"><label>ایمیل</label><input name="email" type="email" autocomplete="email" required></div><div class="field full"><label>رمز عبور (حداقل ۶ نویسه)</label><input name="password" type="password" autocomplete="current-password" minlength="6" required></div><button class="btn primary" type="submit">ورود</button><button class="btn orange" type="button" onclick="signUp()">ساخت حساب</button></form></div>
+<div id="profileArea" style="display:none"><p id="signedInAs" class="contact-note"></p><form id="profileForm" class="form">
+<div class="field"><label>نام نمایشی</label><input name="name" required maxlength="80"></div><div class="field"><label>شهر</label><input name="city" required maxlength="100"></div><div class="field"><label>کشور</label><input name="country" required maxlength="100"></div><div class="field"><label>زبان‌ها</label><input name="languages" maxlength="150"></div>
+<div class="field"><label>دنبال چه هستید؟</label><select name="role"><option value="both">دوستی، سفر و میزبانی</option><option value="host">میزبان محلی</option><option value="traveler">مسافر</option></select></div><div class="field"><label>در دسترس بودن (اختیاری)</label><input name="availability" maxlength="150" placeholder="مثلاً آخر هفته‌ها"></div>
+<div class="field full"><label>معرفی کوتاه</label><textarea name="bio" maxlength="1200"></textarea></div><div class="field full"><label>درباره امکان میزبانی (اختیاری)</label><textarea name="home" maxlength="1200"></textarea></div><div class="field full"><label>جاهای دیدنی پیشنهادی (اختیاری)</label><textarea name="attractions" maxlength="1200"></textarea></div>
+<div class="field"><label>📞 شماره تلفن (اختیاری)</label><input name="phone" type="tel" inputmode="tel" placeholder="+98..."></div><div class="field"><label>راه ارتباطی دیگر</label><input name="contact_info" placeholder="ایمیل یا شناسه پیام‌رسان"></div>
+<div class="full contact-note">اطلاعات تماس در جدول خصوصی ذخیره می‌شود و در کارت عمومی یا جست‌وجو نمایش داده نمی‌شود. حداقل یک راه ارتباطی برای ذخیره پروفایل لازم است.</div><label class="full"><input type="checkbox" required> قوانین امنیتی را خواندم.</label><button class="btn primary full" type="submit">ذخیره پروفایل</button><button class="btn ghost full" type="button" onclick="signOut()">خروج از حساب</button></form></div><p id="statusMsg" role="status"></p></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script>
 <script>
-const people=[['Sarah','Berlin','Germany','🇩🇪','میزبان','https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=700&q=80','عاشق تاریخ و موسیقی و معرفی برلین.'],['Mike','New York','USA','🇺🇸','میزبان','https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80','دوستدار پیاده‌روی، غذا و عکاسی.'],['Elena','Rome','Italy','🇮🇹','مسافر','https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=700&q=80','عاشق تاریخ و تجربه‌های محلی.'],['Mehmet','Istanbul','Turkey','🇹🇷','میزبان','https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=700&q=80','دوستدار سفر و عکاسی.'],['Yuki','Tokyo','Japan','🇯🇵','مسافر','https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=700&q=80','علاقه‌مند به فرهنگ و غذا.'],['Ali','Paris','France','🇫🇷','میزبان','https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=700&q=80','علاقه‌مند به معماری و کافه‌گردی.']];
-function render(a=people){cards.innerHTML=a.map(p=>`<article class="card"><img src="${p[5]}" alt="${p[1]}"><div class="cardbody"><h3>${p[0]} ${p[3]}</h3><small>${p[1]}, ${p[2]}</small><p>${p[6]}</p><span class="tag">${p[4]}</span><button class="btn ghost" onclick="alert('در نسخه چندکاربره: صفحه پروفایل، درخواست دوستی و پیام خصوصی اینجا باز می‌شود.')">مشاهده پروفایل</button></div></article>`).join('')}
-function searchPeople(){let q=document.getElementById('q').value.toLowerCase(),k=document.getElementById('kind').value;render(people.filter(p=>(!q||(p[0]+p[1]+p[2]).toLowerCase().includes(q))&&(!k||p[4]==k)));document.getElementById('people').scrollIntoView({behavior:'smooth'})}
-function auth(){modal.classList.add('show')}function closeAuth(){modal.classList.remove('show')}
-function save(e){e.preventDefault();let d=Object.fromEntries(new FormData(e.target));if(!d.phone.trim()&&!d.contact_info.trim()){alert('حداقل یک راه ارتباطی باید وارد کنید؛ شماره تلفن یا راه ارتباطی دیگر.');return}localStorage.setItem('sd_profile',JSON.stringify(d));closeAuth();load();showDash();alert('پروفایل این مرورگر ذخیره شد. در نسخه چندکاربره اطلاعات تماس خصوصی خواهد بود.')}
-function load(){let d=JSON.parse(localStorage.getItem('sd_profile')||'null');if(d)my.textContent=`${d.name} — ${d.city}، ${d.country}\n${d.bio||''}`}
-function showDash(){dash.classList.add('show');load();dash.scrollIntoView({behavior:'smooth'})}function hideDash(){dash.classList.remove('show')}render();load();
+const client = window.supabase?.createClient(window.safardoustConfig?.url || '', window.safardoustConfig?.anonKey || '');
+const $ = id => document.getElementById(id);
+let currentUser = null, allPeople = [];
+const roleLabel = {host:'میزبان',traveler:'مسافر',both:'دوستی و میزبانی'};
+function esc(v=''){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function setStatus(msg){$('statusMsg').textContent=msg||'';}
+function auth(){ $('modal').classList.add('show'); setStatus(''); updateAuthUI(); }
+function closeAuth(){ $('modal').classList.remove('show'); }
+async function updateAuthUI(){
+ if(!client){setStatus('اتصال به سرویس فعلاً برقرار نیست؛ لطفاً صفحه را تازه‌سازی کنید.');return;}
+ const {data:{user}}=await client.auth.getUser(); currentUser=user||null;
+ $('authArea').style.display=currentUser?'none':'block'; $('profileArea').style.display=currentUser?'block':'none';
+ if(currentUser){$('signedInAs').textContent='واردشده با: '+currentUser.email; await loadMyProfile();}
+}
+async function signUp(){
+ const form=$('authForm'), d=Object.fromEntries(new FormData(form));
+ if(!d.email||!d.password){setStatus('ایمیل و رمز عبور را وارد کنید.');return;}
+ setStatus('در حال ساخت حساب…');
+ const {data,error}=await client.auth.signUp({email:d.email,password:d.password});
+ if(error){setStatus(error.message);return;}
+ if(data.session){currentUser=data.user;await updateAuthUI();setStatus('حساب ساخته شد؛ حالا پروفایلت را تکمیل کن.');}
+ else setStatus('درخواست ثبت‌نام انجام شد. اگر تأیید ایمیل فعال باشد، ایمیلت را بررسی کن و سپس وارد شو.');
+}
+$('authForm').addEventListener('submit',async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));setStatus('در حال ورود…');const {error}=await client.auth.signInWithPassword({email:d.email,password:d.password});if(error){setStatus(error.message);return;}await updateAuthUI();setStatus('با موفقیت وارد شدی.');});
+async function signOut(){const {error}=await client.auth.signOut();if(error){setStatus(error.message);return;}currentUser=null;$('profileForm').reset();await updateAuthUI();setStatus('از حساب خارج شدی.');}
+async function loadMyProfile(){
+ const {data,error}=await client.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();
+ if(error){setStatus('بارگذاری پروفایل ناموفق بود: '+error.message);return;}
+ const form=$('profileForm');
+ if(data) for(const key of ['name','city','country','languages','role','availability','bio','home','attractions']) if(form.elements[key]) form.elements[key].value=data[key]|| (key==='role'?'both':'');
+ const {data:contact}=await client.from('private_contacts').select('phone,contact_info').eq('id',currentUser.id).maybeSingle();
+ if(contact){form.elements.phone.value=contact.phone||'';form.elements.contact_info.value=contact.contact_info||'';}
+}
+$('profileForm').addEventListener('submit',async e=>{
+ e.preventDefault(); if(!currentUser){setStatus('ابتدا وارد حساب شو.');return;}
+ const d=Object.fromEntries(new FormData(e.target));
+ if(!d.phone?.trim()&&!d.contact_info?.trim()){setStatus('حداقل یک راه ارتباطی وارد کن.');return;}
+ setStatus('در حال ذخیره امن پروفایل…');
+ const profile={id:currentUser.id,name:d.name.trim(),city:d.city.trim(),country:d.country.trim(),languages:d.languages.trim(),role:d.role||'both',availability:d.availability.trim(),bio:d.bio.trim(),home:d.home.trim(),attractions:d.attractions.trim()};
+ let result=await client.from('profiles').upsert(profile,{onConflict:'id'});
+ if(result.error){setStatus('ذخیره پروفایل انجام نشد: '+result.error.message);return;}
+ result=await client.from('private_contacts').upsert({id:currentUser.id,phone:d.phone.trim()||null,contact_info:d.contact_info.trim()||null,updated_at:new Date().toISOString()},{onConflict:'id'});
+ if(result.error){setStatus('پروفایل ذخیره شد اما ذخیره راه تماس خطا داد: '+result.error.message);return;}
+ setStatus('پروفایل ذخیره شد؛ اطلاعات تماس خصوصی است.'); await loadPeople(); closeAuth();
+});
+async function loadPeople(){
+ const {data,error}=await client.from('profiles').select('id,name,city,country,languages,role,bio,home,attractions,availability,avatar_url,created_at').order('created_at',{ascending:false}).limit(100);
+ if(error){$('cards').innerHTML='<p class="contact-note">دریافت پروفایل‌ها ناموفق بود. صفحه را تازه‌سازی کنید.</p>';return;}
+ allPeople=data||[];searchPeople(false);
+}
+function searchPeople(scroll=true){
+ const q=($('q').value||'').trim().toLocaleLowerCase(),k=$('kind').value;
+ const matches=allPeople.filter(p=>(!q||[p.name,p.city,p.country,p.languages,p.bio].some(v=>(v||'').toLocaleLowerCase().includes(q)))&&(!k||(k==='میزبان'?(p.role==='host'||p.role==='both'):(p.role==='traveler'||p.role==='both'))));
+ $('cards').innerHTML=matches.length?matches.map(p=>'<article class="card">'+(p.avatar_url?'<img src="'+esc(p.avatar_url)+'" alt="تصویر پروفایل" loading="lazy">':'<div style="height:120px;background:linear-gradient(135deg,#d9efe8,#fff0e3);display:grid;place-items:center;font-size:44px">🌍</div>')+'<div class="cardbody"><h3>'+esc(p.name)+' 🌍</h3><small>'+esc(p.city)+', '+esc(p.country)+'</small><p>'+esc(p.bio||'هنوز معرفی‌ای نوشته نشده.')+'</p><span class="tag">'+esc(roleLabel[p.role]||'عضو')+'</span><button class="btn ghost" onclick="viewProfile(\''+p.id+'\')">مشاهده پروفایل</button></div></article>').join(''):'<div class="panel" style="padding:20px;grid-column:1/-1"><b>هنوز پروفایل عمومی‌ای ثبت نشده است.</b><p>اولین نفر باش و پروفایل خودت را بساز. کاربران واقعی پس از ثبت‌نام اینجا نمایش داده می‌شوند.</p><button class="btn primary" onclick="auth()">ساخت پروفایل</button></div>';
+ if(scroll)$('people').scrollIntoView({behavior:'smooth'});
+}
+function viewProfile(id){
+ const p=allPeople.find(x=>x.id===id);if(!p)return;
+ const text=[p.name,p.city+', '+p.country,p.languages?'زبان‌ها: '+p.languages:'',p.bio||'',p.home?'میزبانی: '+p.home:'',p.attractions?'پیشنهادهای محلی: '+p.attractions:'',p.availability?'دسترسی: '+p.availability:''].filter(Boolean).join('\n\n');
+ if(currentUser&&currentUser.id!==id){if(confirm(text+'\n\nبرای این شخص درخواست دوستی بفرستی؟'))sendRequest(id);}else alert(text);
+}
+async function sendRequest(receiver){
+ if(!currentUser){auth();setStatus('برای ارسال درخواست ابتدا وارد حساب شو.');return;}
+ const message=prompt('پیام کوتاه همراه درخواست (اختیاری):','سلام! خوشحال می‌شوم با شما آشنا شوم.');
+ if(message===null)return;
+ const {error}=await client.from('friend_requests').insert({sender:currentUser.id,receiver,message:message.trim()||null});
+ if(error){setStatus(error.code==='23505'?'قبلاً برای این شخص درخواست فرستاده‌ای.':'ارسال درخواست انجام نشد: '+error.message);auth();return;}
+ alert('درخواست دوستی ارسال شد.');
+}
+async function showDash(){if(!currentUser){auth();return;} $('dash').classList.add('show');await loadMyProfile();$('dash').scrollIntoView({behavior:'smooth'});}
+function hideDash(){$('dash').classList.remove('show');}
+async function init(){
+ if(!client){$('cards').innerHTML='<p>تنظیمات اتصال بارگذاری نشد.</p>';return;}
+ const {data:{session}}=await client.auth.getSession();currentUser=session?.user||null;
+ client.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;});
+ await loadPeople();
+ if(currentUser)loadMyProfile();
+}
+init();
 </script></body></html>
