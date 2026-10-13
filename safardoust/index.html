@@ -39,7 +39,7 @@ async function signUp(){
  const form=$('authForm'), d=Object.fromEntries(new FormData(form));
  if(!d.email||!d.password){setStatus('ایمیل و رمز عبور را وارد کنید.');return;}
  setStatus('در حال ساخت حساب…');
- const {data,error}=await client.auth.signUp({email:d.email,password:d.password});
+ const {data,error}=await client.auth.signUp({email:d.email,password:d.password,options:{emailRedirectTo:window.location.href.split(/[?#]/)[0]}});
  if(error){setStatus(error.message);return;}
  if(data.session){currentUser=data.user;await updateAuthUI();setStatus('حساب ساخته شد؛ حالا پروفایلت را تکمیل کن.');}
  else setStatus('درخواست ثبت‌نام انجام شد. اگر تأیید ایمیل فعال باشد، ایمیلت را بررسی کن و سپس وارد شو.');
