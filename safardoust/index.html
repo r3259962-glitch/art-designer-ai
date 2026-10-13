@@ -5,7 +5,9 @@
 <section class="hero"><div class="wrap"><span>🌍 جامعه‌ای برای دوستی و سفر</span><h1>در هر شهر،<br>یک دوست پیدا کن.</h1><p>آدم‌های شهر مقصدت را پیدا کن، با آن‌ها آشنا شو و اگر هر دو طرف راحت بودید، تجربه سفر و میزبانی را به اشتراک بگذارید.</p><div class="search"><input id="q" placeholder="مثلاً Berlin یا New York"><select id="kind"><option value="">همه</option><option value="میزبان">میزبان</option><option value="مسافر">مسافر</option></select><button onclick="searchPeople()">جستجو 🔎</button></div></div></section>
 <main><section class="features"><div class="wrap grid4"><div class="feature"><b>🤝</b><h3>دوستی قبل از سفر</h3><p>قبل از برنامه‌ریزی با افراد آشنا شوید.</p></div><div class="feature"><b>🏠</b><h3>میزبانی داوطلبانه</h3><p>فقط با رضایت و اعتماد دوطرفه.</p></div><div class="feature"><b>🌍</b><h3>تجربه محلی</h3><p>شهر را از نگاه یک ساکن ببین.</p></div><div class="feature"><b>🛡️</b><h3>امنیت</h3><p>اطلاعات حساس را خودت کنترل کن.</p></div></div></section>
 <section class="section" id="people"><div class="wrap"><div class="head"><div><h2>دوستان شهرهای مختلف</h2><p>پروفایل‌های واقعی اعضای سفر‌دوست.</p></div><button class="btn ghost" onclick="showDash()">پروفایل من</button></div><div class="cards" id="cards"></div></div></section>
-<section class="section dash" id="dash"><div class="wrap"><div class="head"><h2>پروفایل من</h2><button class="btn ghost" onclick="hideDash()">بستن</button></div><div class="panel" style="padding:22px"><p id="my">هنوز پروفایلی ساخته نشده است.</p><button class="btn primary" onclick="auth()">ساخت/ویرایش پروفایل</button></div></div></section>
+<section class="section dash" id="dash"><div class="wrap"><div class="head"><h2>پروفایل من</h2><button class="btn ghost" onclick="hideDash()">بستن</button></div><div class="panel" style="padding:22px"><p id="my">هنوز پروفایلی ساخته نشده است.</p><button class="btn primary" onclick="auth()">ساخت/ویرایش پروفایل</button></div>
+<div class="panel" style="padding:22px;margin-top:16px"><h3>درخواست‌های دوستی</h3><div id="incomingRequests">در حال بارگذاری…</div><h3>دوستان من</h3><div id="friendsList">در حال بارگذاری…</div></div>
+<div class="panel" id="chatPanel" style="padding:22px;margin-top:16px;display:none"><h3 id="chatTitle">گفت‌وگوی خصوصی</h3><div id="chatMessages" style="max-height:280px;overflow:auto;background:#f5f8f7;padding:12px;border-radius:12px;margin-bottom:12px;white-space:pre-wrap"></div><form id="chatForm" style="display:flex;gap:8px"><input id="chatText" maxlength="2000" required placeholder="پیام خود را بنویس…" style="flex:1;min-width:0;border:1px solid #dfe8e5;border-radius:10px;padding:10px"><button class="btn primary">ارسال</button></form></div></div></section>
 <section class="section" id="how" style="background:#eaf4f1"><div class="wrap"><div class="head"><div><h2>چطور کار می‌کند؟</h2><p>انتخاب و اعتماد همیشه دست خود کاربران است.</p></div></div><div class="steps"><div class="step"><div class="num">۱</div><h3>ثبت‌نام</h3><p>حساب و پروفایل بساز.</p></div><div class="step"><div class="num">۲</div><h3>جستجو</h3><p>شهر مقصدت را پیدا کن.</p></div><div class="step"><div class="num">۳</div><h3>آشنایی</h3><p>گفت‌وگو و شناخت قبل از سفر.</p></div><div class="step"><div class="num">۴</div><h3>سفر</h3><p>در صورت توافق، برنامه‌ریزی کنید.</p></div></div></div></section>
 <section class="wrap section" id="safety"><div class="safety"><b>🛡️ نکات مهم امنیتی</b><p>رمز عبور، پول و اطلاعات حساس را به دیگران ندهید. اولین ملاقات را در مکان عمومی انجام دهید و برنامه سفرتان را با فرد مورد اعتماد در میان بگذارید. سفر‌دوست بستر آشنایی است و مسئولیت تصمیم‌ها و رفتار کاربران بر عهده خود آنهاست.</p></div></section>
 <section class="wrap join"><div><h2>سفر، با یک دوست محلی متفاوت است.</h2><p>شهر خودت را معرفی کن و دوستان تازه پیدا کن.</p></div><button class="btn orange" onclick="auth()">عضویت رایگان</button></section></main>
@@ -23,7 +25,7 @@
 <script>
 const client = window.supabase?.createClient(window.safardoustConfig?.url || '', window.safardoustConfig?.anonKey || '');
 const $ = id => document.getElementById(id);
-let currentUser = null, allPeople = [];
+let currentUser = null, allPeople = [], activeChatId = null, activeChatName = '';
 const roleLabel = {host:'میزبان',traveler:'مسافر',both:'دوستی و میزبانی'};
 function esc(v=''){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function setStatus(msg){$('statusMsg').textContent=msg||'';}
@@ -90,7 +92,36 @@ async function sendRequest(receiver){
  if(error){setStatus(error.code==='23505'?'قبلاً برای این شخص درخواست فرستاده‌ای.':'ارسال درخواست انجام نشد: '+error.message);auth();return;}
  alert('درخواست دوستی ارسال شد.');
 }
-async function showDash(){if(!currentUser){auth();return;} $('dash').classList.add('show');await loadMyProfile();$('dash').scrollIntoView({behavior:'smooth'});}
+async function showDash(){if(!currentUser){auth();return;} $('dash').classList.add('show');await loadMyProfile();await loadConnections();$('dash').scrollIntoView({behavior:'smooth'});}
+async function loadConnections(){
+ if(!currentUser)return;
+ const {data:requests,error}=await client.from('friend_requests').select('id,sender,receiver,status,message,created_at').or('receiver.eq.'+currentUser.id+',sender.eq.'+currentUser.id).order('created_at',{ascending:false}).limit(100);
+ if(error){$('incomingRequests').textContent='دریافت درخواست‌ها ناموفق بود.';$('friendsList').textContent='';return;}
+ const incoming=(requests||[]).filter(r=>r.receiver===currentUser.id&&r.status==='pending');
+ const accepted=(requests||[]).filter(r=>r.status==='accepted');
+ const ids=[...new Set([...incoming.map(r=>r.sender),...accepted.map(r=>r.sender===currentUser.id?r.receiver:r.sender)])].filter(id=>id!==currentUser.id);
+ let names={};
+ if(ids.length){const {data:profiles}=await client.from('profiles').select('id,name,city,country').in('id',ids);(profiles||[]).forEach(p=>names[p.id]=p);}
+ $('incomingRequests').innerHTML=incoming.length?incoming.map(r=>'<div style="padding:10px 0;border-bottom:1px solid #e1e9e6"><b>'+esc(names[r.sender]?.name||'عضو')+'</b> — '+esc(r.message||'درخواست دوستی')+'<div style="display:flex;gap:8px;margin-top:8px"><button class="btn primary" onclick="respondRequest('+r.id+',\'accepted\')">پذیرفتن</button><button class="btn ghost" onclick="respondRequest('+r.id+',\'declined\')">رد کردن</button></div></div>').join(''):'درخواست جدیدی نداری.';
+ $('friendsList').innerHTML=accepted.length?accepted.map(r=>{const id=r.sender===currentUser.id?r.receiver:r.sender,p=names[id]||{};return '<div style="padding:10px 0;border-bottom:1px solid #e1e9e6"><b>'+esc(p.name||'عضو')+'</b> — '+esc([p.city,p.country].filter(Boolean).join(', '))+' <button class="btn ghost" onclick="openChat(\''+id+'\',\''+esc(p.name||'دوست')+'\')">پیام خصوصی</button></div>';}).join(''):'هنوز دوستی پذیرفته‌شده‌ای نداری.';
+}
+async function respondRequest(id,status){
+ const {error}=await client.from('friend_requests').update({status}).eq('id',id).eq('receiver',currentUser.id);
+ if(error){alert('به‌روزرسانی درخواست انجام نشد: '+error.message);return;}await loadConnections();
+}
+async function openChat(id,name){
+ if(!currentUser||id===currentUser.id)return;
+ const {data:friendship,error}=await client.from('friend_requests').select('id').eq('status','accepted').or('and(sender.eq.'+currentUser.id+',receiver.eq.'+id+'),and(sender.eq.'+id+',receiver.eq.'+currentUser.id+')').limit(1);
+ if(error||!friendship?.length){alert('پیام خصوصی فقط پس از پذیرفته‌شدن درخواست دوستی فعال است.');return;}
+ activeChatId=id;activeChatName=name;$('chatTitle').textContent='گفت‌وگو با '+name;$('chatPanel').style.display='block';await loadChat();$('chatPanel').scrollIntoView({behavior:'smooth'});
+}
+async function loadChat(){
+ const {data,error}=await client.from('messages').select('id,sender,receiver,body,created_at').or('and(sender.eq.'+currentUser.id+',receiver.eq.'+activeChatId+'),and(sender.eq.'+activeChatId+',receiver.eq.'+currentUser.id+')').order('created_at',{ascending:true}).limit(200);
+ if(error){$('chatMessages').textContent='بارگذاری پیام‌ها ناموفق بود.';return;}
+ $('chatMessages').innerHTML=(data||[]).map(m=>'<div style="padding:6px 0;text-align:'+(m.sender===currentUser.id?'left':'right')+'"><span style="display:inline-block;background:'+(m.sender===currentUser.id?'#dcefea':'#fff')+';padding:8px 11px;border-radius:12px;max-width:90%;white-space:pre-wrap">'+esc(m.body)+'</span><small style="display:block;color:#6e7e83;font-size:10px">'+new Date(m.created_at).toLocaleString('fa-IR')+'</small></div>').join('')||'هنوز پیامی ردوبدل نشده است.';
+}
+$('chatForm').addEventListener('submit',async e=>{e.preventDefault();if(!activeChatId||!currentUser)return;const body=$('chatText').value.trim();if(!body)return;const {error}=await client.from('messages').insert({sender:currentUser.id,receiver:activeChatId,body});if(error){alert('ارسال پیام انجام نشد: '+error.message);return;}$('chatText').value='';await loadChat();});
+
 function hideDash(){$('dash').classList.remove('show');}
 async function init(){
  if(!client){$('cards').innerHTML='<p>تنظیمات اتصال بارگذاری نشد.</p>';return;}
