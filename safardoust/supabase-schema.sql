@@ -62,8 +62,15 @@ create policy "private contacts owner update" on public.private_contacts for upd
 create policy "private contacts owner delete" on public.private_contacts for delete using (auth.uid()=id);
 
 create policy "requests participants" on public.friend_requests for select using (auth.uid()=sender or auth.uid()=receiver);
-create policy "send own request" on public.friend_requests for insert with check (auth.uid()=sender);
+create policy "send own request" on public.friend_requests for insert with check ((select auth.uid())=sender and receiver<>sender);
 create policy "update received request" on public.friend_requests for update using (auth.uid()=receiver);
 
 create policy "messages participants" on public.messages for select using (auth.uid()=sender or auth.uid()=receiver);
-create policy "send own message" on public.messages for insert with check (auth.uid()=sender);
+create policy "send own message" on public.messages for insert with check (
+ (select auth.uid())=messages.sender and messages.receiver<>messages.sender
+ and exists (
+  select 1 from public.friend_requests fr where fr.status='accepted'
+  and ((fr.sender=messages.sender and fr.receiver=messages.receiver)
+    or (fr.sender=messages.receiver and fr.receiver=messages.sender))
+ )
+);
